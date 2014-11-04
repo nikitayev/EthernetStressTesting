@@ -99,6 +99,9 @@ begin
   
   zMemStream := TStreamHelper.Create;
   tcpSock := TTCPBlockSocket.Create;
+  tcpSock.ConnectionTimeout := cSocketsTimeOut;
+  tcpSock.SetTimeout(cSocketsTimeOut);
+  tcpSock.SocksTimeout := cSocketsTimeOut;
   tcpSock.SetLinger(false, cLinger);
   tcpSock.RaiseExcept := false;
   try    
@@ -115,12 +118,12 @@ begin
       zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csTryToConnect);
       PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
       // подключились
-      for I := 0 to 30000 do
+      for I := 0 to 30 do
       begin
         tcpSock.Connect(FIP, FPort);
         if (Terminated or (tcpSock.LastError = 0)) then
           break;
-        sleep(10);
+        sleep(20);
       end;
       if (tcpSock.LastError = 0) then
       begin

@@ -277,7 +277,8 @@ begin
       //  WriteLn(fSock.GetErrorDescEx);
       ProcessingData(fSock);
     //end;
-    Suspend;
+    if (not Terminated) then    
+      Suspend;
   end;
 end;
 
@@ -285,12 +286,18 @@ constructor TTCPThread.Create();
 begin
   FreeOnTerminate := False;
   fSock := TTCPBlockSocket.Create;
+  fSock.SetTimeout(cSocketsTimeOut);
+  fSock.SocksTimeout := cSocketsTimeOut;
+  fSock.ConnectionTimeout := cSocketsTimeOut;
   inherited Create(false);
 end;
 
 destructor TTCPThread.Destroy;
 begin
   //WriteLn(format('Disconnect from %s:%d',[fIp,fPort]));
+  Terminate;
+  Resume;
+  WaitFor;
   fSock.Free;
   inherited;
 end;
