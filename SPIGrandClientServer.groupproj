@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{8A4AE648-1A3C-453D-B98A-B383AF5AAE51}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Client\SPIGrandVirtualModules.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Server\ServerGrandProject.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="SPIGrandVirtualModules">
+        <MSBuild Projects="Client\SPIGrandVirtualModules.dproj"/>
+    </Target>
+    <Target Name="SPIGrandVirtualModules:Clean">
+        <MSBuild Projects="Client\SPIGrandVirtualModules.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SPIGrandVirtualModules:Make">
+        <MSBuild Projects="Client\SPIGrandVirtualModules.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ServerGrandProject">
+        <MSBuild Projects="Server\ServerGrandProject.dproj"/>
+    </Target>
+    <Target Name="ServerGrandProject:Clean">
+        <MSBuild Projects="Server\ServerGrandProject.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ServerGrandProject:Make">
+        <MSBuild Projects="Server\ServerGrandProject.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="SPIGrandVirtualModules;ServerGrandProject"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="SPIGrandVirtualModules:Clean;ServerGrandProject:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="SPIGrandVirtualModules:Make;ServerGrandProject:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

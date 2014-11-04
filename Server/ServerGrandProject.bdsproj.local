@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2014.10.04 08:54:30.998.pas,C:\Users\alex\Documents\Borland Studio Projects\Unit2.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\ServerGrand.pas</Transaction>
+    <Transaction>2014.10.04 08:54:30.998.dfm,C:\Users\alex\Documents\Borland Studio Projects\Unit2.dfm=E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\ServerGrand.dfm</Transaction>
+    <Transaction>2014.10.04 08:54:48.224.bdsproj,C:\Users\alex\Documents\Borland Studio Projects\Project1.bdsproj=E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\ServerGrandProject.bdsproj</Transaction>
+  </Transactions>
+</BorlandProject>

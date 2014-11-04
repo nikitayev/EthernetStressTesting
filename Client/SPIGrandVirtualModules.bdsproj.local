@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2014.10.04 08:52:46.271.pas,C:\Users\alex\Documents\Borland Studio Projects\Unit1.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\MainUnit.pas</Transaction>
+    <Transaction>2014.10.04 08:52:46.271.dfm,C:\Users\alex\Documents\Borland Studio Projects\Unit1.dfm=E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\MainUnit.dfm</Transaction>
+    <Transaction>2014.10.04 08:53:09.269.bdsproj,C:\Users\alex\Documents\Borland Studio Projects\Project1.bdsproj=E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\SPIGrandVirtualModules.bdsproj</Transaction>
+    <Transaction>2014.10.04 09:21:07.118.pas,E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\Unit1.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\ClientThreadUnit.pas</Transaction>
+    <Transaction>2014.10.04 09:23:01.268.pas,E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\Unit1.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\U_GlobalDataUnit.pas</Transaction>
+  </Transactions>
+</BorlandProject>

@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+  <PersonalityInfo>
+    <Option>
+      <Option Name="Personality">Default.Personality</Option>
+      <Option Name="ProjectType"></Option>
+      <Option Name="Version">1.0</Option>
+      <Option Name="GUID">{08FF925C-F096-4E5C-B049-A5A4D24B6FA9}</Option>
+    </Option>
+  </PersonalityInfo>
+  <Default.Personality>
+    
+    
+    
+    <Projects>
+      <Projects Name="SPIGrandVirtualModules.exe">Client\SPIGrandVirtualModules.bdsproj</Projects>
+      <Projects Name="ServerGrandProject.exe">Server\ServerGrandProject.bdsproj</Projects>
+      <Projects Name="Targets">SPIGrandVirtualModules.exe ServerGrandProject.exe</Projects>
+    </Projects>
+    <Dependencies/>
+  </Default.Personality>
+</BorlandProject>
