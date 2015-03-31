@@ -87,6 +87,7 @@ var
   tcpSock: TTCPBlockSocket;
   zMemStream: TStreamHelper;
   zClientResult: PClentInfo;
+  zCanWrite: boolean;
 begin
   SetName;
   { Place thread code here }
@@ -99,8 +100,8 @@ begin
   
   zMemStream := TStreamHelper.Create;
   tcpSock := TTCPBlockSocket.Create;
-  tcpSock.ConnectionTimeout := cSocketsTimeOut;
-  tcpSock.SetTimeout(cSocketsTimeOut);
+  tcpSock.ConnectionTimeout := cClientConnectionTimeout;
+  tcpSock.SetTimeout(cSetTimeout);
   tcpSock.SocksTimeout := cSocketsTimeOut;
   tcpSock.SetLinger(false, cLinger);
   tcpSock.RaiseExcept := false;
@@ -117,15 +118,19 @@ begin
       
       zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csTryToConnect);
       PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      zCanWrite := false;
       // подключились
       for I := 0 to 30 do
       begin
         tcpSock.Connect(FIP, FPort);
-        if (Terminated or (tcpSock.LastError = 0)) then
+        //zCanWrite := tcpSock.CanWrite(cSocketsTimeOut);
+        if (Terminated or (tcpSock.LastError = 0) or (zCanWrite)) then
           break;
-        sleep(20);
+        tcpSock.CloseSocket;
+        tcpSock.ResetLastError;
+        sleep(cClientConnectionTimeout);
       end;
-      if (tcpSock.LastError = 0) then
+      if ((tcpSock.LastError = 0) or (zCanWrite)) then
       begin
         tcpSock.RaiseExcept := true;
         zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csConnected);

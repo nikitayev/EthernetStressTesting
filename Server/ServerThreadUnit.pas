@@ -190,11 +190,14 @@ end;
 procedure TListenerThread.Execute;
 var
   ClientSock: TSocket;
-begin
+begin  
   with ListenerSocket do
   begin    
     RaiseExcept := true;
     CreateSocket;
+    SetTimeout(cSetTimeout);
+    ConnectionTimeout := cSocketsTimeOut;
+    SocksTimeout := cSocketsTimeOut;
     //if LastError = 0 then
     //  WriteLn('Socket successfully initialized')
     //else

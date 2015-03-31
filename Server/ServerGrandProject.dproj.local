@@ -1,11 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>1899.12.30 00:00:00.000.585,E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\Unit1.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\ServerThreadUnit.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.dfm,E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\ServerGrand.dfm=C:\Users\alex\Documents\Borland Studio Projects\Unit2.dfm</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.bdsproj,E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\ServerGrandProject.bdsproj=C:\Users\alex\Documents\Borland Studio Projects\Project1.bdsproj</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.pas,E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\ServerGrand.pas=C:\Users\alex\Documents\Borland Studio Projects\Unit2.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.683,=E:\MyResearches\Ethernet\Нагрузочное тестирование\U_GlobalDataUnit.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.816,=E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.585,E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\ServerThreadUnit.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.bdsproj,C:\Users\alex\Documents\Borland Studio Projects\Project1.bdsproj=E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\ServerGrandProject.bdsproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.pas,C:\Users\alex\Documents\Borland Studio Projects\Unit2.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\ServerGrand.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.dfm,C:\Users\alex\Documents\Borland Studio Projects\Unit2.dfm=E:\MyResearches\Ethernet\Нагрузочное тестирование\Server\ServerGrand.dfm</Transaction>
   </Transactions>
 </BorlandProject>
