@@ -41,7 +41,11 @@ begin
   end else
   begin
     CheckingTimer.Enabled := False;
-    Server.Free;
+    try
+      Server.Free;
+    finally
+      Server := nil;
+    end;
     btStart.Caption := 'START';
   end;
 end;

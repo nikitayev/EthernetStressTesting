@@ -3,7 +3,7 @@
         <ProjectGuid>{84EAC3F4-4316-469D-AA8A-86513DE6FB49}</ProjectGuid>
         <MainSource>ServerGrandProject.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
         <FrameworkType>VCL</FrameworkType>
@@ -128,6 +128,9 @@
         <DCC_RangeChecking>true</DCC_RangeChecking>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
+        <DCC_MaxStackSize>65536</DCC_MaxStackSize>
+        <DCC_MinStackSize>4096</DCC_MinStackSize>
+        <DCC_ImportedDataReferences>true</DCC_ImportedDataReferences>
         <DCC_Optimize>true</DCC_Optimize>
         <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
         <DCC_GenerateStackFrames>false</DCC_GenerateStackFrames>

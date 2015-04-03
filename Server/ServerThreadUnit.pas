@@ -105,7 +105,7 @@ begin
   	TTCPThread(FThreadList[i]).Free;
     FThreadList[i] := nil;
 	end;
-	FThreadList.Free;
+	FreeAndNil(FThreadList);
 	inherited;
 end;
 
@@ -193,10 +193,10 @@ var
 begin  
   with ListenerSocket do
   begin    
-    RaiseExcept := true;
+    RaiseExcept := false;
     CreateSocket;
     SetTimeout(cSetTimeout);
-    ConnectionTimeout := cSocketsTimeOut;
+    ConnectionTimeout := cClientConnectionTimeout;
     SocksTimeout := cSocketsTimeOut;
     //if LastError = 0 then
     //  WriteLn('Socket successfully initialized')
@@ -211,7 +211,7 @@ begin
     //  WriteLn('Bind error: '+GetErrorDescEx);
     listen;
     repeat
-      if CanRead(cClientTimeout) then
+      if CanRead(1000) then
       begin
         ClientSock := Accept;
         inc(FConnectionsCount);
@@ -226,15 +226,15 @@ begin
         //  WriteLn('TCP thread creation error: '+GetErrorDescEx);
       end;
       FThreadManager.clearFinishedThreads;
-      sleep(1);
+      //sleep(0);
     until Terminated;
-    FThreadManager.Free;
+    FreeAndNil(FThreadManager);
   end;
 end;
 
 constructor TListenerThread.Create(const aPort: string);
 begin
-  FreeOnTerminate := True;
+  FreeOnTerminate := False;
   ListenerSocket := TTCPBlockSocket.Create;
   FThreadManager:=TThreadManager.Create(20000);
   {if ListenerSocket.LastError = 0
@@ -245,11 +245,18 @@ begin
   }
   FPort := aPort;
   inherited Create(False);
+  //Priority := tpHigher;
 end;
 
 destructor TListenerThread.Destroy;
 begin
-  ListenerSocket.Free;
+  if not Terminated then
+  begin
+    Terminate;
+    WaitFor;
+  end;
+  FreeAndNil(FThreadManager);
+  FreeAndNil(ListenerSocket);
   {if ListenerSocket.LastError = 0 then
     WriteLn('Listener has been deleted')
   else
@@ -298,10 +305,10 @@ end;
 destructor TTCPThread.Destroy;
 begin
   //WriteLn(format('Disconnect from %s:%d',[fIp,fPort]));
-  Terminate;
-  Resume;
-  WaitFor;
-  fSock.Free;
+  if not Terminated then WaitFor;
+  //Resume;
+  //WaitFor;
+  FreeAndNil(fSock);
   inherited;
 end;
 
@@ -324,7 +331,8 @@ begin
       zMemStream.Clear;
 
       zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csTryToConnect);
-      PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      //PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
       // устанавливаем режим
       zMemStream.WriteByte(byte(cmDefaultMode));
       zMemStream.Position := 0;
@@ -332,15 +340,15 @@ begin
       zMemStream.Clear;
 
       zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csConnected);
-      PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
       // прочитаем ответ
       procSock.RecvStream(zMemStream, cClientTimeout);      
       zMemStream.Clear;
 
       zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csDone);
-      PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
     finally
-      zMemStream.Free;
+      FreeAndNil(zMemStream);
     end; 
   except
     on E: ESynapseError do

@@ -9,11 +9,11 @@ const
   // время таймаута ожидания при посылке Update
   cUpdateFirstSleep = 5000;
   // клиентский таймаут
-  cClientTimeout = 50000;
+  cClientTimeout = 30000;
   // таймаут для сокета
   //cSocketsTimeOut = 1000; - bad timeout for high load I/O
-  cSocketsTimeOut = 50000; // - good timeout for high load I/O
-  cClientConnectionTimeout = 1000;
+  cSocketsTimeOut = 30000; // - good timeout for high load I/O
+  cClientConnectionTimeout = 5000;
   cSetTimeout = 1000;
   cLinger = 100;
   // нотификация от клиента

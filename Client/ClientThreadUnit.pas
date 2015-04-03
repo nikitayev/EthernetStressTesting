@@ -78,6 +78,7 @@ begin
   FDeviceID := aDeviceID;
   FreeOnTerminate := true;
   inherited Create;
+  //Priority := tpLower;
 end;
 
 procedure TClientThread.Execute;
@@ -117,7 +118,7 @@ begin
       end;      
       
       zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csTryToConnect);
-      PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
       zCanWrite := false;
       // подключились
       for I := 0 to 30 do
@@ -134,13 +135,13 @@ begin
       begin
         tcpSock.RaiseExcept := true;
         zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csConnected);
-        PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+        SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
         // отправили пакет
         zMemStream.Position := 0;
         tcpSock.SendStream(zMemStream);
         zMemStream.Clear;
         zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csInTransaction);
-        PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+        SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
         // получили ответ от сервера
         tcpSock.RecvStream(zMemStream, cClientTimeout);
         zMemStream.Position := 0;
@@ -174,7 +175,7 @@ begin
     on E: ESynapseError do
     begin
       zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csConnectError);
-      PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
     end;
   end;
 end;
