@@ -95,4 +95,9 @@ object Form1: TForm1
     TabOrder = 5
     Text = '5706'
   end
+  object UpdateTimer: TTimer
+    OnTimer = UpdateTimerTimer
+    Left = 472
+    Top = 96
+  end
 end

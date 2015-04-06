@@ -17,8 +17,10 @@ type
     leAddress: TLabeledEdit;
     lePort: TLabeledEdit;
     ImageDevices: TImage;
+    UpdateTimer: TTimer;
     procedure FormShow(Sender: TObject);
     procedure btStartClick(Sender: TObject);
+    procedure UpdateTimerTimer(Sender: TObject);
   private
     { Private declarations }
   public
@@ -55,25 +57,16 @@ end;
 procedure TForm1.TCPClientNotify(var Message: TMessage);
 var
   zData: PClentInfo;
-  zX, zY: Integer;
 begin
   zData := PClentInfo(Message.WParam);
-  zY := zData.DeviceID div 100;
-  zX := zData.DeviceID mod 100;
-  //ImageDevices.Picture.Bitmap.Canvas.Lock;
-  case zData.IOState of
-    csWaiting: ImageDevices.Picture.Bitmap.Canvas.Pixels[zX, zY] := RGB(240, 240, 255);
-    csReady: ImageDevices.Picture.Bitmap.Canvas.Pixels[zX, zY] := RGB(240, 240, 255);
-    csTryToConnect: ImageDevices.Picture.Bitmap.Canvas.Pixels[zX, zY] := clYellow;
-    csConnected: ImageDevices.Picture.Bitmap.Canvas.Pixels[zX, zY] := RGB(230, 255, 230);
-    csInTransaction: ImageDevices.Picture.Bitmap.Canvas.Pixels[zX, zY] := RGB(0, 255, 0);
-    csDone: ImageDevices.Picture.Bitmap.Canvas.Pixels[zX, zY] := RGB(0, 0, 0);
-    csDataError: ImageDevices.Picture.Bitmap.Canvas.Pixels[zX, zY] := RGB(255, 0, 0);
-    csConnectError: ImageDevices.Picture.Bitmap.Canvas.Pixels[zX, zY] := RGB(255, 170, 170);
-  end;
+  IOTransactDone(zData);
+end;
 
-  //ImageDevices.Picture.Bitmap.Canvas.Unlock;
-  Dispose(zData);
+procedure TForm1.UpdateTimerTimer(Sender: TObject);
+begin
+  UpdateTimer.Enabled := False;
+  DrawIOTransactStates(ImageDevices.Picture.Bitmap.Canvas);
+  UpdateTimer.Enabled := True;
 end;
 
 end.

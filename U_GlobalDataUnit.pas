@@ -1,7 +1,7 @@
 unit U_GlobalDataUnit;
 
 interface
-uses SysUtils, Classes, Messages;
+uses Windows, SysUtils, Classes, Messages, Graphics;
 
 const
   cDefaultPacketSize = 2000;
@@ -64,9 +64,15 @@ type
 
 function GetPClentInfo(DeviceID: word; IOMode: TClientMode; LastIOError: Integer;
     IOState: TConnectionState):PClentInfo;
+procedure IOTransactDone(var aClientInfo: PClentInfo);
+procedure DrawIOTransactStates(aCanvas: TCanvas);
 
 implementation
 
+var
+  GDeviceMap: array [0..9999] of TColor;
+  GDevState2Color: array [TConnectionState] of TColor;  
+  
 function GetPClentInfo(DeviceID: word; IOMode: TClientMode; LastIOError: Integer;
     IOState: TConnectionState):PClentInfo;
 begin
@@ -75,6 +81,27 @@ begin
   Result.IOMode := IOMode;
   Result.LastIOError := LastIOError;
   Result.IOState := IOState;
+end;
+
+procedure IOTransactDone(var aClientInfo: PClentInfo);
+begin
+  GDeviceMap[aClientInfo.DeviceID] := GDevState2Color[aClientInfo.IOState];
+  Dispose(aClientInfo);  
+end;
+
+procedure DrawIOTransactStates(aCanvas: TCanvas);
+var
+  i, zX, zY: Integer;
+begin
+  i := 0;
+  aCanvas.Lock;
+  for zY := 0 to 99 do
+    for zx := 0 to 99 do
+    begin    
+      aCanvas.Pixels[zx, zy] := GDeviceMap[i];
+      inc(i);
+    end;
+  aCanvas.Unlock;
 end;
 
 function TStreamHelper.StreamMove(Src, Dst, Count: Int64): Int64;
@@ -244,4 +271,18 @@ Begin
   Read(PWideChar(Result)^, count * 2);
 End;
 
+var
+  i: Integer;
+initialization  
+  GDevState2Color[csWaiting] := RGB(240, 240, 255);
+  GDevState2Color[csReady] := RGB(240, 240, 255);
+  GDevState2Color[csTryToConnect] := clYellow;
+  GDevState2Color[csConnected] := RGB(230, 255, 230);
+  GDevState2Color[csInTransaction] := RGB(0, 255, 0);
+  GDevState2Color[csDone] := RGB(0, 0, 0);
+  GDevState2Color[csDataError] := RGB(255, 0, 0);
+  GDevState2Color[csConnectError] := RGB(255, 170, 170);
+  for i := 0 to High(GDeviceMap) do
+    GDeviceMap[i] := clWhite;
+finalization
 end.

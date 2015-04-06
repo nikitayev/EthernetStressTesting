@@ -305,9 +305,12 @@ end;
 destructor TTCPThread.Destroy;
 begin
   //WriteLn(format('Disconnect from %s:%d',[fIp,fPort]));
-  if not Terminated then WaitFor;
-  //Resume;
-  //WaitFor;
+  if not Terminated then 
+  begin
+    Terminate;
+    Resume;
+    WaitFor;
+  end;
   FreeAndNil(fSock);
   inherited;
 end;

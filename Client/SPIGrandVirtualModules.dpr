@@ -1,7 +1,7 @@
 program SPIGrandVirtualModules;
 
 uses
-  //ScaleMM3,
+  FastMM4,
   Forms,
   MainUnit in 'MainUnit.pas' {Form1},
   ClientThreadUnit in 'ClientThreadUnit.pas',
