@@ -5,7 +5,9 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ServerThreadUnit, Vcl.StdCtrls, Vcl.ExtCtrls, U_GlobalDataUnit,
-  Winapi.WinSock, Web.Win.Sockets;
+  Winapi.WinSock, Web.Win.Sockets,
+  IdContext, IdSync, IdBaseComponent, IdComponent, IdCustomTCPServer,
+  IdTCPServer, IdGlobal, IdIOHandler, Unit_Indy_Functions;
 
 type
   TServerMainForm = class(TForm)
@@ -15,17 +17,22 @@ type
     CheckingTimer: TTimer;
     lbClientsCount: TLabel;
     btStartWinSock: TButton;
+    btStartIndy: TButton;
     procedure btStartSynapseClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CheckingTimerTimer(Sender: TObject);
     procedure btStartWinSockClick(Sender: TObject);
+    procedure btStartIndyClick(Sender: TObject);
   private
     { Private declarations }
     SynapseServer: TListenerThread;
     WinSockServer: TTcpServer;
+    IdTCPServer: TIdTCPServer;
     procedure TCPClientNotify(var Message: TMessage);
       message WM_TCPClientNotify;
-    procedure TcpServerWinSockAccept(Sender: TObject; ClientSocket: TCustomIpClient);
+    procedure TcpServerWinSockAccept(Sender: TObject;
+      ClientSocket: TCustomIpClient);
+    procedure IdTCPServerExecute(AContext: TIdContext);
   public
     { Public declarations }
   end;
@@ -36,6 +43,32 @@ var
 implementation
 
 {$R *.dfm}
+
+
+procedure TServerMainForm.btStartIndyClick(Sender: TObject);
+begin
+  if not Assigned(IdTCPServer) then
+  begin
+    IdTCPServer := TIdTCPServer.Create(nil);
+    IdTCPServer.DefaultPort := StrToIntDef(lePort.Text, 5706);
+    IdTCPServer.Bindings.Add.IP := '127.0.0.1';
+    IdTCPServer.Bindings.Add.Port := IdTCPServer.DefaultPort;
+    IdTCPServer.OnExecute := IdTCPServerExecute;
+    IdTCPServer.Active := True;
+    btStartIndy.Caption := 'STOP';
+    CheckingTimer.Enabled := True;
+  end
+  else
+  begin
+    CheckingTimer.Enabled := False;
+    try
+      IdTCPServer.Free;
+    finally
+      IdTCPServer := nil;
+    end;
+    btStartIndy.Caption := 'START Indy';
+  end;
+end;
 
 procedure TServerMainForm.btStartSynapseClick(Sender: TObject);
 begin
@@ -53,13 +86,13 @@ begin
     finally
       SynapseServer := nil;
     end;
-    btStartSynapse.Caption := 'START';
+    btStartSynapse.Caption := 'START Synapse';
   end;
 end;
 
+
 procedure TServerMainForm.btStartWinSockClick(Sender: TObject);
 begin
-  // WinSockServer: TTcpServer
   if not Assigned(WinSockServer) then
   begin
     WinSockServer := TTcpServer.Create(nil);
@@ -78,17 +111,17 @@ begin
     finally
       WinSockServer := nil;
     end;
-    btStartWinSock.Caption := 'START';
+    btStartWinSock.Caption := 'START WinSock';
   end;
 end;
 
 procedure TServerMainForm.CheckingTimerTimer(Sender: TObject);
 begin
- if Assigned(SynapseServer) then
- begin
-  lbClientsCount.Caption := Format('Зафиксировано коннектов: %d',
-    [SynapseServer.ConnectionsCount]);
- end;
+  if Assigned(SynapseServer) then
+  begin
+    lbClientsCount.Caption := Format('Зафиксировано коннектов: %d',
+      [SynapseServer.ConnectionsCount]);
+  end;
   CheckingTimer.Enabled := False;
   DrawIOTransactStates(ImageDevices.Picture.Bitmap.Canvas);
   CheckingTimer.Enabled := True;
@@ -103,6 +136,56 @@ begin
   ImageDevices.Picture.Bitmap.Canvas.Rectangle(0, 0, 99, 99);
 end;
 
+
+procedure TServerMainForm.IdTCPServerExecute(AContext: TIdContext);
+var
+  FDeviceID: Word;
+  zMemStream: TStreamHelper;
+  zClientResult: PClentInfo;
+begin
+  FDeviceID := 0;
+  zMemStream := TStreamHelper.Create;
+  try
+    try
+      if not ReceiveStream2(AContext, zMemStream) then
+        exit;
+      zMemStream.Position := 0;
+      FDeviceID := zMemStream.ReadWord;
+      zMemStream.Clear;
+
+      zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0,
+        csTryToConnect);
+      IOTransactDone(zClientResult);
+      // устанавливаем режим
+      zMemStream.WriteByte(byte(cmDefaultMode));
+      zMemStream.Position := 0;
+      if not SendStream(AContext, zMemStream) then
+        exit;
+      zMemStream.Clear;
+
+      zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0, csConnected);
+      IOTransactDone(zClientResult);
+      // прочитаем ответ
+      if not ReceiveStream2(AContext, zMemStream) then
+        exit;
+      zMemStream.Clear;
+
+      zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0, csDone);
+      IOTransactDone(zClientResult);
+    finally
+      FreeAndNil(zMemStream);
+    end;
+  except
+    on E: Exception do
+    begin
+      zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0,
+        csConnectError);
+      PostMessage(Application.MainFormHandle, WM_TCPClientNotify,
+        Integer(zClientResult), 0);
+    end;
+  end;
+end;
+
 procedure TServerMainForm.TCPClientNotify(var Message: TMessage);
 var
   zData: PClentInfo;
@@ -111,10 +194,11 @@ begin
   IOTransactDone(zData);
 end;
 
+
 procedure TServerMainForm.TcpServerWinSockAccept(Sender: TObject;
   ClientSocket: TCustomIpClient);
 
-  function SendStream(aStream: TStream; aSocket: TCustomIpClient):boolean;
+  function SendStream(aStream: TStream; aSocket: TCustomIpClient): boolean;
   var
     zBuffLen: Integer;
   begin
@@ -123,66 +207,65 @@ procedure TServerMainForm.TcpServerWinSockAccept(Sender: TObject;
     aSocket.SendStream(aStream);
   end;
 
-  function RecvStream(aStream: TMemoryStream; aSocket: TCustomIpClient):boolean;
+  function RecvStream(aStream: TMemoryStream; aSocket: TCustomIpClient)
+    : boolean;
   var
     zBuffLen: Integer;
   begin
-    Result := false;
-    if aSocket.ReceiveBuf(zBuffLen, SizeOf(zBuffLen)) = SOCKET_ERROR then exit;
+    Result := False;
+    if aSocket.ReceiveBuf(zBuffLen, SizeOf(zBuffLen)) = SOCKET_ERROR then
+      exit;
     aStream.Size := zBuffLen;
     aStream.Position := 0;
-    if aSocket.ReceiveBuf(aStream.Memory^,zBuffLen) = SOCKET_ERROR then exit;
-    Result := true;
+    if aSocket.ReceiveBuf(aStream.Memory^, zBuffLen) = SOCKET_ERROR then
+      exit;
+    Result := True;
   end;
-  
+
 var
   FDeviceID: Word;
   zMemStream: TStreamHelper;
   zClientResult: PClentInfo;
-  //zMode: TClientMode;
 begin
-  //if data <> '' then
-  // WriteLn(data+#32+'we get it from '+IntToStr(number)+' thread');
   FDeviceID := 0;
   zMemStream := TStreamHelper.Create;
   try
     try
-      //procSock.RecvStream(zMemStream, cClientTimeout);
-      if not RecvStream(zMemStream, ClientSocket) then exit;
+      if not RecvStream(zMemStream, ClientSocket) then
+        exit;
       zMemStream.Position := 0;
       FDeviceID := zMemStream.ReadWord;
       zMemStream.Clear;
 
-      zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csTryToConnect);
-      //PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
-      //SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0,
+        csTryToConnect);
       IOTransactDone(zClientResult);
       // устанавливаем режим
       zMemStream.WriteByte(byte(cmDefaultMode));
       zMemStream.Position := 0;
-      //procSock.SendStream(zMemStream);
-      if not SendStream(zMemStream, ClientSocket) then exit;
+      if not SendStream(zMemStream, ClientSocket) then
+        exit;
       zMemStream.Clear;
 
-      zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csConnected);
-      //SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0, csConnected);
       IOTransactDone(zClientResult);
       // прочитаем ответ
-      //procSock.RecvStream(zMemStream, cClientTimeout);
-      if not RecvStream(zMemStream, ClientSocket) then exit;
+      if not RecvStream(zMemStream, ClientSocket) then
+        exit;
       zMemStream.Clear;
 
-      zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csDone);
-      //SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0, csDone);
       IOTransactDone(zClientResult);
     finally
       FreeAndNil(zMemStream);
-    end; 
+    end;
   except
     on E: Exception do
     begin
-      zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csConnectError);
-      PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0,
+        csConnectError);
+      PostMessage(Application.MainFormHandle, WM_TCPClientNotify,
+        Integer(zClientResult), 0);
     end;
   end;
 end;

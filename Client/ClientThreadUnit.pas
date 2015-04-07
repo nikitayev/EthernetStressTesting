@@ -137,15 +137,15 @@ begin
       begin
         tcpSock.RaiseExcept := true;
         zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csConnected);
-        //SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
         IOTransactDone(zClientResult);
+
         // отправили пакет
         zMemStream.Position := 0;
         tcpSock.SendStream(zMemStream);
         zMemStream.Clear;
         zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csInTransaction);
-        //SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
         IOTransactDone(zClientResult);
+
         // получили ответ от сервера
         tcpSock.RecvStream(zMemStream, cClientTimeout);
         zMemStream.Position := 0;
@@ -165,12 +165,11 @@ begin
           end;
         end;
         zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csDone);
-        //PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
         IOTransactDone(zClientResult);
+
       end else
       begin
         zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csConnectError);
-        //PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
         IOTransactDone(zClientResult);
       end;
     finally
@@ -181,7 +180,6 @@ begin
     on E: ESynapseError do
     begin
       zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csConnectError);
-      //SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
       IOTransactDone(zClientResult);
     end;
   end;

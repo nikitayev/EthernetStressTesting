@@ -58,6 +58,15 @@ object ServerMainForm: TServerMainForm
     TabOrder = 2
     OnClick = btStartWinSockClick
   end
+  object btStartIndy: TButton
+    Left = 406
+    Top = 113
+    Width = 147
+    Height = 25
+    Caption = #1057#1058#1040#1056#1058' Indy'
+    TabOrder = 3
+    OnClick = btStartIndyClick
+  end
   object CheckingTimer: TTimer
     Enabled = False
     OnTimer = CheckingTimerTimer

@@ -3,85 +3,86 @@ unit ServerThreadUnit;
 interface
 
 uses
-  {$IFDEF UNIX}
- cthreads,
- {$ENDIF}
-  Windows, Classes, Sysutils,  syncobjs, blcksock, synsock;
+{$IFDEF UNIX}
+  cthreads,
+{$ENDIF}
+  Windows, Classes, Sysutils, syncobjs, blcksock, synsock;
 
 type
 
- TThreadManager = class;
+  TThreadManager = class;
 
- { TManagedThread }
+  { TManagedThread }
 
- TManagedThread = class(TThread)
- public
-   constructor Create(waiting : Boolean);
-   function    isDone()     : Boolean;
-   function    isErroneus() : Boolean;
+  TManagedThread = class(TThread)
+  public
+    constructor Create(waiting: Boolean);
+    function isDone(): Boolean;
+    function isErroneus(): Boolean;
 
- protected
-   done_,
-   erroneous_ : Boolean;
-end;
+  protected
+    done_, erroneous_: Boolean;
+  end;
 
   { TTCPThread }
 
-TTCPThread = class(TManagedThread)
-    private
-     fSock: TTCPBlockSocket;
-     fIP: string;
-     FPort: integer;
-     FNumber: integer;
-     procedure SetSocket(aSock: TSocket);
-    protected
-     procedure Execute; override;
-    public
-     constructor Create();
-     destructor Destroy; override;
-     procedure ProcessingData(procSock: TTCPBlockSocket);
-     Property Number: integer read Fnumber Write FNumber;
-end;
+  TTCPThread = class(TManagedThread)
+  private
+    fSock: TTCPBlockSocket;
+    fIP: string;
+    FPort: integer;
+    FNumber: integer;
+    procedure SetSocket(aSock: TSocket);
+  protected
+    procedure Execute; override;
+  public
+    constructor Create();
+    destructor Destroy; override;
+    procedure ProcessingData(procSock: TTCPBlockSocket);
+    Property Number: integer read FNumber Write FNumber;
+  end;
 
- { TListenerThread }
+  { TListenerThread }
 
   TListenerThread = class(TThread)
   private
     FPort: string;
     ListenerSocket: TTCPBlockSocket;
     FThreadManager: TThreadManager;
-    FConnectionsCount: Integer;
+    FConnectionsCount: integer;
   protected
     procedure Execute; override;
   public
     constructor Create(const aPort: string);
     destructor Destroy; override;
-    property ConnectionsCount: Integer read FConnectionsCount;
-end;
+    property ConnectionsCount: integer read FConnectionsCount;
+  end;
 
- { TThreadManager }
+  { TThreadManager }
 
- TThreadManager = class(TObject)
-	private
-		FAbort: Boolean;
-		FThreadList: TList;
-		FMaxThreadCount: Integer;
-		procedure SetMaxThreadCount(Count: Integer);
-	public
-		constructor Create(MaxThreads: integer);
-		destructor Destroy; override;
-		function GetSuspendThread(aSock: TSocket): TTCPThread;
+  TThreadManager = class(TObject)
+  private
+    FAbort: Boolean;
+    FThreadList: TList;
+    FMaxThreadCount: integer;
+    procedure SetMaxThreadCount(Count: integer);
+  public
+    constructor Create(MaxThreads: integer);
+    destructor Destroy; override;
+    function GetSuspendThread(aSock: TSocket): TTCPThread;
     procedure clearFinishedThreads;
-		function GetActiveThreadCount: Integer;
-		property MaxThreadCount: Integer read FMaxThreadCount write SetMaxThreadCount;
-	end;
+    function GetActiveThreadCount: integer;
+    property MaxThreadCount: integer read FMaxThreadCount
+      write SetMaxThreadCount;
+  end;
 
 implementation
+
 uses U_GlobalDataUnit, Forms;
 
 { TThreadManager }
 
-procedure TThreadManager.SetMaxThreadCount(Count: Integer);
+procedure TThreadManager.SetMaxThreadCount(Count: integer);
 begin
   FMaxThreadCount := Count;
 end;
@@ -89,61 +90,63 @@ end;
 constructor TThreadManager.Create(MaxThreads: integer);
 begin
   inherited Create;
-	FThreadList := TList.Create;
+  FThreadList := TList.Create;
   FMaxThreadCount := MaxThreads;
 end;
 
 destructor TThreadManager.Destroy;
 var
-	i: Integer;
+  i: integer;
 begin
   FThreadList.Pack;
   clearFinishedThreads;
-	for i := FThreadList.Count - 1 downto 0 do 
-  if Assigned(FThreadList[i]) then  
-  begin
-  	TTCPThread(FThreadList[i]).Free;
-    FThreadList[i] := nil;
-	end;
-	FreeAndNil(FThreadList);
-	inherited;
+  for i := FThreadList.Count - 1 downto 0 do
+    if Assigned(FThreadList[i]) then
+    begin
+      TTCPThread(FThreadList[i]).Free;
+      FThreadList[i] := nil;
+    end;
+  FreeAndNil(FThreadList);
+  inherited;
 end;
 
 function TThreadManager.GetSuspendThread(aSock: TSocket): TTCPThread;
 var
-	i: Integer;
-	TCPThread: TTCPThread;
+  i: integer;
+  TCPThread: TTCPThread;
 begin
-	Result := nil;
-	if GetActiveThreadCount >= FMaxThreadCount then Exit;
-	for i := 0 to FThreadList.Count - 1 do 
+  Result := nil;
+  if GetActiveThreadCount >= FMaxThreadCount then
+    Exit;
+  for i := 0 to FThreadList.Count - 1 do
   begin
-		if Assigned(FThreadList[i]) and TTCPThread(FThreadList[i]).Suspended then
+    if Assigned(FThreadList[i]) and TTCPThread(FThreadList[i]).Suspended then
     begin
-			Result := TTCPThread(FThreadList[i]);
+      Result := TTCPThread(FThreadList[i]);
       Result.SetSocket(aSock);
       Result.Resume;
-			Break;
-		end;
-	end;
-	if (Result = nil) and (FMaxThreadCount > FThreadList.Count) then 
+      Break;
+    end;
+  end;
+  if (Result = nil) and (FMaxThreadCount > FThreadList.Count) then
   begin
-		TCPThread := TTCPThread.Create;
-		TCPThread.FreeOnTerminate := False;
+    TCPThread := TTCPThread.Create;
+    TCPThread.FreeOnTerminate := False;
     TCPThread.SetSocket(aSock);
-		TCPThread.Number := FThreadList.Count;
-		FThreadList.Add(TCPThread);
-		Result := TCPThread;
-	end;
+    TCPThread.Number := FThreadList.Count;
+    FThreadList.Add(TCPThread);
+    Result := TCPThread;
+  end;
 end;
 
 procedure TThreadManager.clearFinishedThreads;
 var
-	i: Integer;
+  i: integer;
 begin
-	for i := 0 to FThreadList.Count - 1 do
+  for i := 0 to FThreadList.Count - 1 do
   begin
-    if (TTCPThread(FThreadList[i]) <> nil) and TTCPThread(FThreadList[i]).isDone() then
+    if (TTCPThread(FThreadList[i]) <> nil) and TTCPThread(FThreadList[i])
+      .isDone() then
     begin
       TTCPThread(FThreadList[i]).WaitFor;
       TTCPThread(FThreadList[i]).Free;
@@ -152,37 +155,36 @@ begin
   end;
 end;
 
-function TThreadManager.GetActiveThreadCount: Integer;
+function TThreadManager.GetActiveThreadCount: integer;
 var
-	i: Integer;
+  i: integer;
 begin
-	Result := 0;
-	for i := 0 to FThreadList.Count - 1 do 
+  Result := 0;
+  for i := 0 to FThreadList.Count - 1 do
   begin
     if (TTCPThread(FThreadList[i]) <> nil) then
       if not TTCPThread(FThreadList[i]).Suspended then
-	      Inc(Result);
-	end;
+        Inc(Result);
+  end;
 end;
 
 { TManagedThread }
 
-constructor TManagedThread.Create(waiting : Boolean);
+constructor TManagedThread.Create(waiting: Boolean);
 begin
- inherited Create(waiting);
- done_ := false;
- erroneous_ := false;
+  inherited Create(waiting);
+  done_ := False;
+  erroneous_ := False;
 end;
 
-function  TManagedThread.isDone()     : Boolean;
+function TManagedThread.isDone(): Boolean;
 begin
- Result := done_;
+  Result := done_;
 end;
 
-
-function  TManagedThread.isErroneus() : Boolean;
+function TManagedThread.isErroneus(): Boolean;
 begin
- Result := erroneous_;
+  Result := erroneous_;
 end;
 
 { TListenerThread }
@@ -190,43 +192,43 @@ end;
 procedure TListenerThread.Execute;
 var
   ClientSock: TSocket;
-begin  
+begin
   with ListenerSocket do
-  begin    
-    RaiseExcept := false;
+  begin
+    RaiseExcept := False;
     CreateSocket;
     SetTimeout(cSetTimeout);
     ConnectionTimeout := cClientConnectionTimeout;
     SocksTimeout := cSocketsTimeOut;
-    //if LastError = 0 then
-    //  WriteLn('Socket successfully initialized')
-    //else
-    //  WriteLn('An error occurred while initializing the socket: '+GetErrorDescEx);
-    Family := SF_IP4;
-    setLinger(false, cLinger);
-    bind('0.0.0.0', FPort);
-    //if LastError = 0 then
-    //  WriteLn('Bind on 5050')
+    // if LastError = 0 then
+    // WriteLn('Socket successfully initialized')
     // else
-    //  WriteLn('Bind error: '+GetErrorDescEx);
+    // WriteLn('An error occurred while initializing the socket: '+GetErrorDescEx);
+    Family := SF_IP4;
+    setLinger(False, cLinger);
+    bind('0.0.0.0', FPort);
+    // if LastError = 0 then
+    // WriteLn('Bind on 5050')
+    // else
+    // WriteLn('Bind error: '+GetErrorDescEx);
     listen;
     repeat
       if CanRead(1000) then
       begin
         ClientSock := Accept;
-        inc(FConnectionsCount);
+        Inc(FConnectionsCount);
         if LastError = 0 then
         begin
-          //TTCPThread.Create()
-          //ClientThread:=FThreadManager.GetSuspendThread(ClientSock);
+          // TTCPThread.Create()
+          // ClientThread:=FThreadManager.GetSuspendThread(ClientSock);
           FThreadManager.GetSuspendThread(ClientSock);
-          //    WriteLn('We have '+ IntToStr(FThreadManager.GetActiveThreadCount)+#32+'client threads!');
+          // WriteLn('We have '+ IntToStr(FThreadManager.GetActiveThreadCount)+#32+'client threads!');
         end;
-        //else
-        //  WriteLn('TCP thread creation error: '+GetErrorDescEx);
+        // else
+        // WriteLn('TCP thread creation error: '+GetErrorDescEx);
       end;
       FThreadManager.clearFinishedThreads;
-      //sleep(0);
+      // sleep(0);
     until Terminated;
     FreeAndNil(FThreadManager);
   end;
@@ -236,16 +238,16 @@ constructor TListenerThread.Create(const aPort: string);
 begin
   FreeOnTerminate := False;
   ListenerSocket := TTCPBlockSocket.Create;
-  FThreadManager:=TThreadManager.Create(20000);
-  {if ListenerSocket.LastError = 0
-  then
+  FThreadManager := TThreadManager.Create(20000);
+  { if ListenerSocket.LastError = 0
+    then
     WriteLn('Listener has been created')
-  else
+    else
     WriteLn('Listener creation error: '+ListenerSocket.GetErrorDescEx);
   }
   FPort := aPort;
   inherited Create(False);
-  //Priority := tpHigher;
+  // Priority := tpHigher;
 end;
 
 destructor TListenerThread.Destroy;
@@ -257,9 +259,9 @@ begin
   end;
   FreeAndNil(FThreadManager);
   FreeAndNil(ListenerSocket);
-  {if ListenerSocket.LastError = 0 then
+  { if ListenerSocket.LastError = 0 then
     WriteLn('Listener has been deleted')
-  else
+    else
     WriteLn('Listener deleting error: '+ListenerSocket.GetErrorDescEx);
   }
   inherited;
@@ -275,19 +277,19 @@ end;
 
 procedure TTCPThread.Execute;
 begin
-  fIp:=fSock.GetRemoteSinIP;
-  fPort:=fSock.GetRemoteSinPort;
-  //WriteLn(format('Accepted connection from %s:%d',[fIp,fPort]));
+  fIP := fSock.GetRemoteSinIP;
+  FPort := fSock.GetRemoteSinPort;
+  // WriteLn(format('Accepted connection from %s:%d',[fIp,fPort]));
   while (not Terminated) and (not isDone) do
   begin
-    //if fSock.WaitingData > 0 then
-    //begin
-      //s:=fSock.RecvPacket(2000);
-      //if fSock.LastError <> 0 then
-      //  WriteLn(fSock.GetErrorDescEx);
-      ProcessingData(fSock);
-    //end;
-    if (not Terminated) then    
+    // if fSock.WaitingData > 0 then
+    // begin
+    // s:=fSock.RecvPacket(2000);
+    // if fSock.LastError <> 0 then
+    // WriteLn(fSock.GetErrorDescEx);
+    ProcessingData(fSock);
+    // end;
+    if (not Terminated) then
       Suspend;
   end;
 end;
@@ -299,13 +301,13 @@ begin
   fSock.SetTimeout(cSocketsTimeOut);
   fSock.SocksTimeout := cSocketsTimeOut;
   fSock.ConnectionTimeout := cSocketsTimeOut;
-  inherited Create(false);
+  inherited Create(False);
 end;
 
 destructor TTCPThread.Destroy;
 begin
-  //WriteLn(format('Disconnect from %s:%d',[fIp,fPort]));
-  if not Terminated then 
+  // WriteLn(format('Disconnect from %s:%d',[fIp,fPort]));
+  if not Terminated then
   begin
     Terminate;
     Resume;
@@ -320,9 +322,9 @@ var
   FDeviceID: Word;
   zMemStream: TStreamHelper;
   zClientResult: PClentInfo;
-  //zMode: TClientMode;
+  // zMode: TClientMode;
 begin
-  //if data <> '' then
+  // if data <> '' then
   // WriteLn(data+#32+'we get it from '+IntToStr(number)+' thread');
   FDeviceID := 0;
   zMemStream := TStreamHelper.Create;
@@ -333,9 +335,10 @@ begin
       FDeviceID := zMemStream.ReadWord;
       zMemStream.Clear;
 
-      zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csTryToConnect);
-      //PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
-      //SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0,
+        csTryToConnect);
+      // PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      // SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
       IOTransactDone(zClientResult);
       // устанавливаем режим
       zMemStream.WriteByte(byte(cmDefaultMode));
@@ -343,27 +346,30 @@ begin
       procSock.SendStream(zMemStream);
       zMemStream.Clear;
 
-      zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csConnected);
-      //SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0, csConnected);
+      // SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
       IOTransactDone(zClientResult);
       // прочитаем ответ
-      procSock.RecvStream(zMemStream, cClientTimeout);      
+      procSock.RecvStream(zMemStream, cClientTimeout);
       zMemStream.Clear;
 
-      zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csDone);
-      //SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0, csDone);
+      // SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
       IOTransactDone(zClientResult);
     finally
       FreeAndNil(zMemStream);
-    end; 
+    end;
   except
     on E: ESynapseError do
     begin
-      zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csConnectError);
-      PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0,
+        csConnectError);
+      PostMessage(Application.MainFormHandle, WM_TCPClientNotify,
+        integer(zClientResult), 0);
     end;
   end;
 end;
 
 begin
+
 end.
