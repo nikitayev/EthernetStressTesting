@@ -40,14 +40,23 @@ object ServerMainForm: TServerMainForm
     TabOrder = 0
     Text = '5706'
   end
-  object btStart: TButton
+  object btStartSynapse: TButton
     Left = 406
     Top = 51
-    Width = 75
+    Width = 147
     Height = 25
-    Caption = #1057#1058#1040#1056#1058'!'
+    Caption = #1057#1058#1040#1056#1058' Synapse'
     TabOrder = 1
-    OnClick = btStartClick
+    OnClick = btStartSynapseClick
+  end
+  object btStartWinSock: TButton
+    Left = 406
+    Top = 82
+    Width = 147
+    Height = 25
+    Caption = #1057#1058#1040#1056#1058' WinSock'
+    TabOrder = 2
+    OnClick = btStartWinSockClick
   end
   object CheckingTimer: TTimer
     Enabled = False

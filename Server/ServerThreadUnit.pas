@@ -335,7 +335,8 @@ begin
 
       zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csTryToConnect);
       //PostMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
-      SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      //SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      IOTransactDone(zClientResult);
       // устанавливаем режим
       zMemStream.WriteByte(byte(cmDefaultMode));
       zMemStream.Position := 0;
@@ -343,13 +344,15 @@ begin
       zMemStream.Clear;
 
       zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csConnected);
-      SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      //SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      IOTransactDone(zClientResult);
       // прочитаем ответ
       procSock.RecvStream(zMemStream, cClientTimeout);      
       zMemStream.Clear;
 
       zClientResult := GetPClentInfo( FDeviceID, cmDefaultMode, 0, csDone);
-      SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      //SendMessage(Application.MainFormHandle, WM_TCPClientNotify, Integer(zClientResult), 0);
+      IOTransactDone(zClientResult);
     finally
       FreeAndNil(zMemStream);
     end; 
