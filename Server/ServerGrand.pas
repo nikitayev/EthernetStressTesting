@@ -175,7 +175,8 @@ begin
     finally
       FreeAndNil(zMemStream);
       //«акрываем соединение с пользователем
-      AContext.Connection.Disconnect;
+      if Assigned(AContext.Connection) then
+        AContext.Connection.Disconnect;
     end;
   except
     on E: Exception do
@@ -205,8 +206,9 @@ procedure TServerMainForm.TcpServerWinSockAccept(Sender: TObject;
     zBuffLen: Integer;
   begin
     zBuffLen := aStream.Size;
-    aSocket.SendBuf(zBuffLen, SizeOf(zBuffLen));
-    aSocket.SendStream(aStream);
+    result := aSocket.SendBuf(zBuffLen, SizeOf(zBuffLen)) <> SOCKET_ERROR;
+    if result then
+      result := aSocket.SendStream(aStream) <> SOCKET_ERROR;
   end;
 
   function RecvStream(aStream: TMemoryStream; aSocket: TCustomIpClient)
