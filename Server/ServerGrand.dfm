@@ -12,6 +12,7 @@ object ServerMainForm: TServerMainForm
   Font.Style = []
   OldCreateOrder = False
   Scaled = False
+  OnClose = FormClose
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -66,6 +67,15 @@ object ServerMainForm: TServerMainForm
     Caption = #1057#1058#1040#1056#1058' Indy'
     TabOrder = 3
     OnClick = btStartIndyClick
+  end
+  object btStartIOCP: TButton
+    Left = 406
+    Top = 144
+    Width = 147
+    Height = 25
+    Caption = #1057#1058#1040#1056#1058' IOCP'
+    TabOrder = 4
+    OnClick = btStartIOCPClick
   end
   object CheckingTimer: TTimer
     Enabled = False

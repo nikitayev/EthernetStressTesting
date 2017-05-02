@@ -8,7 +8,8 @@ uses
   U_GlobalDataUnit in '..\U_GlobalDataUnit.pas',
   Unit_Indy_Functions in '..\Unit_Indy_Functions.pas',
   Unit_Indy_Classes in '..\Unit_Indy_Classes.pas',
-  Web.Win.Sockets in '..\Web.Win.Sockets.pas';
+  Web.Win.Sockets in '..\Web.Win.Sockets.pas',
+  IOCPPool in 'IOCPPool.pas';
 
 {$R *.res}
 
