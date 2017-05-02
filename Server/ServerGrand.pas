@@ -62,7 +62,7 @@ begin
   begin
     CheckingTimer.Enabled := False;
     try
-      IdTCPServer.Free;
+      FreeAndNil(IdTCPServer);
     finally
       IdTCPServer := nil;
     end;
@@ -82,7 +82,7 @@ begin
   begin
     CheckingTimer.Enabled := False;
     try
-      SynapseServer.Free;
+      FreeAndNil(SynapseServer);
     finally
       SynapseServer := nil;
     end;
@@ -107,7 +107,7 @@ begin
   begin
     CheckingTimer.Enabled := False;
     try
-      WinSockServer.Free;
+      FreeAndNil(WinSockServer);
     finally
       WinSockServer := nil;
     end;
@@ -174,6 +174,8 @@ begin
       IOTransactDone(zClientResult);
     finally
       FreeAndNil(zMemStream);
+      //«акрываем соединение с пользователем
+      AContext.Connection.Disconnect;
     end;
   except
     on E: Exception do

@@ -64,7 +64,7 @@ type
 
 function GetPClentInfo(DeviceID: word; IOMode: TClientMode; LastIOError: Integer;
     IOState: TConnectionState):PClentInfo;
-procedure IOTransactDone(var aClientInfo: PClentInfo);
+procedure IOTransactDone(aClientInfo: PClentInfo);
 procedure DrawIOTransactStates(aCanvas: TCanvas);
 
 implementation
@@ -83,7 +83,7 @@ begin
   Result.IOState := IOState;
 end;
 
-procedure IOTransactDone(var aClientInfo: PClentInfo);
+procedure IOTransactDone(aClientInfo: PClentInfo);
 begin
   GDeviceMap[aClientInfo.DeviceID] := GDevState2Color[aClientInfo.IOState];
   Dispose(aClientInfo);  
