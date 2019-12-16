@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>1899-12-30 00:00:00.000.359,E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\U_StartClientsUnit.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\Unit1.pas</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.pas,E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\ClientThreadUnit.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\Unit1.pas</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.bdsproj,E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\SPIGrandVirtualModules.bdsproj=C:\Users\alex\Documents\Borland Studio Projects\Project1.bdsproj</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.pas,E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\MainUnit.pas=C:\Users\alex\Documents\Borland Studio Projects\Unit1.pas</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.dfm,E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\MainUnit.dfm=C:\Users\alex\Documents\Borland Studio Projects\Unit1.dfm</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.pas,E:\MyResearches\Ethernet\Нагрузочное тестирование\U_GlobalDataUnit.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.359,E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\Unit1.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\U_StartClientsUnit.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\Unit1.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\ClientThreadUnit.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\Unit1.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\U_GlobalDataUnit.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.bdsproj,C:\Users\alex\Documents\Borland Studio Projects\Project1.bdsproj=E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\SPIGrandVirtualModules.bdsproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,C:\Users\alex\Documents\Borland Studio Projects\Unit1.pas=E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\MainUnit.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.dfm,C:\Users\alex\Documents\Borland Studio Projects\Unit1.dfm=E:\MyResearches\Ethernet\Нагрузочное тестирование\Client\MainUnit.dfm</Transaction>
   </Transactions>
 </BorlandProject>

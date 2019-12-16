@@ -8,7 +8,7 @@ uses
   Winapi.WinSock, Web.Win.Sockets,
   IdContext, IdSync, IdBaseComponent, IdComponent, IdCustomTCPServer,
   IdTCPServer, IdGlobal, IdIOHandler, Unit_Indy_Functions,
-  Synsock, BlckSock, IOCPPool;
+  Synsock, BlckSock, IOCPPool, INIFiles;
 
 type
   TServerMainForm = class(TForm)
@@ -172,10 +172,11 @@ begin
     IOCPServer.OnProcess := AppOnProcess;
     IOCPServer.OnError  := nil;
     IOCPServer.Port := StrToIntDef(lePort.Text, 5706);
-    IOCPServer.MaxThreadsInPool := 10;
-    IOCPServer.MinThreadsInPool := 1;
-    IOCPServer.IdleTimeOut := 1000; // ожидание нового подключения
-    IOCPServer.CommandTimeOut := 1000;  // таймаут БД
+    IOCPServer.MaxThreadsInPool := 300;
+    IOCPServer.MinThreadsInPool := 300;
+    IOCPServer.IdleTimeOut := cClientTimeout; // ожидание нового подключения
+    IOCPServer.CommandTimeOut := cClientTimeout;  // таймаут БД
+    IOCPServer.ConnectionTimeOut := cClientTimeout;  // таймаут
 
     IOCPServer.Start;
 
@@ -248,7 +249,15 @@ begin
 end;
 
 procedure TServerMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
+var
+  zINI: TINIFile;
 begin
+  zINI := TINIFile.Create(ExtractFilePath(ParamStr(0)) + 'parameters.ini');
+  try
+    zINI.WriteString('net', 'port', lePort.Text);
+  finally
+    FreeAndNil(zINI);
+  end;
   if Assigned(SynapseServer) then
     FreeAndNil(SynapseServer);
   if Assigned(WinSockServer) then
@@ -264,7 +273,15 @@ begin
 end;
 
 procedure TServerMainForm.FormShow(Sender: TObject);
+var
+  zINI: TINIFile;
 begin
+  zINI := TINIFile.Create(ExtractFilePath(ParamStr(0)) + 'parameters.ini');
+  try
+    lePort.Text := zINI.ReadString('net', 'port', '8081');
+  finally
+    FreeAndNil(zINI);
+  end;
   ImageDevices.Picture.Bitmap.SetSize(100, 100);
   ImageDevices.Picture.Bitmap.Canvas.Pen.Color := clWhite;
   ImageDevices.Picture.Bitmap.Canvas.Brush.Color := clWhite;

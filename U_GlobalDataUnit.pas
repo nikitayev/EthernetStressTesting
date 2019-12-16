@@ -12,10 +12,10 @@ const
   cClientTimeout = 30000;
   // таймаут для сокета
   //cSocketsTimeOut = 1000; - bad timeout for high load I/O
-  cSocketsTimeOut = 30000; // - good timeout for high load I/O
-  cClientConnectionTimeout = 5000;
-  cSetTimeout = 1000;
-  cLinger = 100;
+  cSocketsTimeOut = 1000; // - good timeout for high load I/O
+  cClientConnectionTimeout = 5000; // поток замирает на это время если была ошибка
+  cSetTimeout = 30000;
+  cLinger = 0;//100; задержка не нужна
   // нотификация от клиента
   WM_TCPClientNotify = WM_USER + 1;
 

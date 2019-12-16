@@ -140,7 +140,7 @@ begin
       IOTransactDone(zClientResult);
       zCanWrite := false;
       // подключились
-      for i := 0 to 30 do
+      for i := 1 to 5 do
       begin
         tcpSock.Connect(FIP, FPort);
         // zCanWrite := tcpSock.CanWrite(cSocketsTimeOut);
@@ -205,8 +205,8 @@ end;
 procedure TClientThread.Echo3;
 var
   tcpSock: TTCPBlockSocket;
-  zAutoIncValue: Word;
-  i: Integer;
+  //zAutoIncValue: Word;
+  //i: Integer;
   zCanWrite: Boolean;
 begin
   SetName;

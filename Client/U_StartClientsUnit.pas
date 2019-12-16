@@ -57,7 +57,7 @@ implementation
 constructor TCreateClientsThread.Create(aBeginIDX, aCount: Integer; 
   aBeginTime: TDateTime; const aIP, aPort: string);
 begin
-  FreeOnTerminate := true;
+  FreeOnTerminate := false;
   FBeginIDX := aBeginIDX;
   FCount := aCount;
   FBeginTime := aBeginTime;
