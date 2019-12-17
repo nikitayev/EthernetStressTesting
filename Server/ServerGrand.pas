@@ -8,7 +8,8 @@ uses
   Winapi.WinSock, Web.Win.Sockets,
   IdContext, IdSync, IdBaseComponent, IdComponent, IdCustomTCPServer,
   IdTCPServer, IdGlobal, IdIOHandler, Unit_Indy_Functions,
-  Synsock, BlckSock, IOCPPool, INIFiles;
+  Synsock, BlckSock, IOCPPool, INIFiles, IdScheduler, IdSchedulerOfThread,
+  IdSchedulerOfThreadPool;
 
 type
   TServerMainForm = class(TForm)
@@ -32,6 +33,7 @@ type
     SynapseServer: TListenerThread;
     WinSockServer: TTcpServer;
     IdTCPServer: TIdTCPServer;
+    IdSchedulerOfThreadPool: TIdSchedulerOfThreadPool;
     IOCPServer: TTCPDaemon; // IOCP server
     procedure TCPClientNotify(var Message: TMessage);
       message WM_TCPClientNotify;
@@ -141,7 +143,12 @@ procedure TServerMainForm.btStartIndyClick(Sender: TObject);
 begin
   if not Assigned(IdTCPServer) then
   begin
+    IdSchedulerOfThreadPool := TIdSchedulerOfThreadPool.Create(nil);
+    IdSchedulerOfThreadPool.PoolSize := 400;
+    IdSchedulerOfThreadPool.MaxThreads := 400;
+    IdSchedulerOfThreadPool.Init;
     IdTCPServer := TIdTCPServer.Create(nil);
+    IdTCPServer.Scheduler := IdSchedulerOfThreadPool;
     IdTCPServer.DefaultPort := StrToIntDef(lePort.Text, 5706);
     IdTCPServer.TerminateWaitTime := cClientTimeout;
     IdTCPServer.ReuseSocket := rsTrue;
@@ -150,6 +157,7 @@ begin
     IdTCPServer.Bindings.Add.Port := IdTCPServer.DefaultPort;
     IdTCPServer.OnExecute := IdTCPServerExecute;
     IdTCPServer.MaxConnections := 10000;
+    IdTCPServer.ListenQueue := 400;
     IdTCPServer.Active := True;
     btStartIndy.Caption := 'STOP';
     CheckingTimer.Enabled := True;
@@ -159,6 +167,7 @@ begin
     CheckingTimer.Enabled := False;
     try
       FreeAndNil(IdTCPServer);
+      FreeAndNil(IdSchedulerOfThreadPool);
     finally
       IdTCPServer := nil;
     end;
@@ -273,6 +282,7 @@ begin
     IOCPServer.Stop;
     Sleep(1000);
     FreeAndNil(IOCPServer);
+    FreeAndNil(IdSchedulerOfThreadPool);
   end;
 end;
 

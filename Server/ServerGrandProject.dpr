@@ -1,7 +1,7 @@
 program ServerGrandProject;
 
 uses
-  //FastMM4,
+  FastMM4,
   Forms,
   ServerGrand in 'ServerGrand.pas' {ServerMainForm},
   ServerThreadUnit in 'ServerThreadUnit.pas',
