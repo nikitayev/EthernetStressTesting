@@ -41,7 +41,7 @@ implementation
 
 procedure TForm1.btStartClick(Sender: TObject);
 begin
-  dtpStartTime.DateTime := IncSecond(Now, 15);
+  dtpStartTime.DateTime := IncSecond(Now, 20);
   if (Assigned(FClientList)) then
   begin
     FreeAndNil(FClientList);

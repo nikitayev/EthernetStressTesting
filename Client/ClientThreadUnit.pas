@@ -122,6 +122,8 @@ begin
   tcpSock := TTCPBlockSocket.Create;
   tcpSock.ConnectionTimeout := cClientConnectionTimeout;
   tcpSock.SetTimeout(cSetTimeout);
+  //tcpSock.SetSendTimeout(cSetTimeout);
+  //tcpSock.SetRecvTimeout(cSetTimeout);
   tcpSock.SocksTimeout := cSocketsTimeOut;
   tcpSock.SetLinger(false, cLinger);
   tcpSock.RaiseExcept := false;

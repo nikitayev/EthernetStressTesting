@@ -181,7 +181,7 @@ begin
 
     //Config;
     GetSystemInfo(SystemInfo);
-    FIOCPHandle := CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, SystemInfo.dwNumberOfProcessors);
+    FIOCPHandle := CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, SystemInfo.dwNumberOfProcessors * 2);
 
     if (FIOCPHandle = 0) then
       raise Exception.Create('Erro IOCP Creation');

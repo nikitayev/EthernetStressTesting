@@ -143,9 +143,13 @@ begin
   begin
     IdTCPServer := TIdTCPServer.Create(nil);
     IdTCPServer.DefaultPort := StrToIntDef(lePort.Text, 5706);
+    IdTCPServer.TerminateWaitTime := cClientTimeout;
+    IdTCPServer.ReuseSocket := rsTrue;
+    IdTCPServer.Bindings.Clear;
     IdTCPServer.Bindings.Add.IP := '127.0.0.1';
     IdTCPServer.Bindings.Add.Port := IdTCPServer.DefaultPort;
     IdTCPServer.OnExecute := IdTCPServerExecute;
+    IdTCPServer.MaxConnections := 10000;
     IdTCPServer.Active := True;
     btStartIndy.Caption := 'STOP';
     CheckingTimer.Enabled := True;

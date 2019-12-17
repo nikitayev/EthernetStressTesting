@@ -12,8 +12,8 @@ const
   cClientTimeout = 30000;
   // таймаут для сокета
   //cSocketsTimeOut = 1000; - bad timeout for high load I/O
-  cSocketsTimeOut = 1000; // - good timeout for high load I/O
-  cClientConnectionTimeout = 5000; // поток замирает на это время если была ошибка
+  cSocketsTimeOut = 5000; // - good timeout for high load I/O
+  cClientConnectionTimeout = 8000; // поток замирает на это время если была ошибка
   cSetTimeout = 30000;
   cLinger = 0;//100; задержка не нужна
   // нотификация от клиента
