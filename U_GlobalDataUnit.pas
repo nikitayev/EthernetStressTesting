@@ -9,13 +9,14 @@ const
   // время таймаута ожидания при посылке Update
   cUpdateFirstSleep = 5000;
   // клиентский таймаут
-  cClientTimeout = 30000;
+  cClientTimeout = 60000;
   // таймаут для сокета
   //cSocketsTimeOut = 1000; - bad timeout for high load I/O
-  cSocketsTimeOut = 5000; // - good timeout for high load I/O
-  cClientConnectionTimeout = 8000; // поток замирает на это время если была ошибка
-  cSetTimeout = 30000;
-  cLinger = 0;//100; задержка не нужна
+  cSocketsTimeOut = 60000; // 5000 - good timeout for high load I/O
+  cClientSocketsTimeOut = 10000; // 5000 - good timeout for high load I/O
+  cClientConnectionTimeout = 10000; // 8000 поток замирает на это время если была ошибка
+  cSetTimeout = 60000;
+  cLinger = 60000;//0 - задержка не нужна
   // нотификация от клиента
   WM_TCPClientNotify = WM_USER + 1;
 

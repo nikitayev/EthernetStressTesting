@@ -34,7 +34,7 @@ type
 
   TUpdateEvent = procedure(nActThreads, nCurWorks, nCurThreads: integer) of object;
   TProcessEvent = procedure(ASock: TTCPBlockSocket) of object;
-  TErrorEvent = procedure(AE: Exception) of object;
+  TErrorEvent  = procedure(AE: Exception) of object;
 
   TTcpDaemon = class;
 
@@ -181,7 +181,7 @@ begin
 
     //Config;
     GetSystemInfo(SystemInfo);
-    FIOCPHandle := CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, SystemInfo.dwNumberOfProcessors * 2);
+    FIOCPHandle := CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, SystemInfo.dwNumberOfProcessors);
 
     if (FIOCPHandle = 0) then
       raise Exception.Create('Erro IOCP Creation');
@@ -372,7 +372,7 @@ begin
 
     CreateSocket;
 
-    setLinger(true, 10000);
+    setLinger(true, 60000);
 
     bind('0.0.0.0', IntToStr(FPort));
     listen;
@@ -381,7 +381,7 @@ begin
 
     repeat
 
-      if CanRead(5000) then
+      if CanRead(60000) then // 5000 default
       begin
 
         ClientSocket := Accept;
@@ -542,7 +542,7 @@ begin
             try
               Socket := ClientSocket;
               GetSins;
-              setLinger(true, 10000);
+              setLinger(true, 60000); // default 10000
 
               if Assigned(FOnProcessEvent) then
                 FOnProcessEvent(FWorkerSocket);

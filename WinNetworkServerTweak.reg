@@ -1,0 +1,7 @@
+Windows Registry Editor Version 5.00
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\Tcpip\Parameters]
+"TcpMaxHalfOpen"=dword:0000FFFF
+"TcpMaxHalfOpenRetried"=dword:0000FFFF
+"TcpMaxPortsExhausted"=dword:0000FFFF
+"TcpNumConnections"=dword:fffffe
+"TcpTimedWaitDelay"=dword:0000012C

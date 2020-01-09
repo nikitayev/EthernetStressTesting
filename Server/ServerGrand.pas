@@ -185,8 +185,8 @@ begin
     IOCPServer.OnProcess := AppOnProcess;
     IOCPServer.OnError  := nil;
     IOCPServer.Port := StrToIntDef(lePort.Text, 5706);
-    IOCPServer.MaxThreadsInPool := 300;
-    IOCPServer.MinThreadsInPool := 300;
+    IOCPServer.MaxThreadsInPool := 10000;
+    IOCPServer.MinThreadsInPool := 40;
     IOCPServer.IdleTimeOut := cClientTimeout; // ожидание нового подключения
     IOCPServer.CommandTimeOut := cClientTimeout;  // таймаут БД
     IOCPServer.ConnectionTimeOut := cClientTimeout;  // таймаут

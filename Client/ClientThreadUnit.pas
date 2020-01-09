@@ -124,8 +124,8 @@ begin
   tcpSock.SetTimeout(cSetTimeout);
   //tcpSock.SetSendTimeout(cSetTimeout);
   //tcpSock.SetRecvTimeout(cSetTimeout);
-  tcpSock.SocksTimeout := cSocketsTimeOut;
-  tcpSock.SetLinger(false, cLinger);
+  tcpSock.SocksTimeout := cClientSocketsTimeOut;
+  tcpSock.SetLinger(true, cLinger);
   tcpSock.RaiseExcept := false;
   try
     try
