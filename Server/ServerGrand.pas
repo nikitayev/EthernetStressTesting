@@ -57,14 +57,16 @@ implementation
 
 
 procedure TServerMainForm.AppOnProcess(ClientSocket: TTCPBlockSocket);
-  function IsOperationGood(ASocket: TTCPBlockSocket): Boolean;
+
+  function IsOperationGood(ASocket: TTCPBlockSocket): boolean;
   begin
-    Result := (ASocket.Socket <> INVALID_SOCKET) and (ASocket.LastError = 0);
+    Result := (ASocket.Socket <> INVALID_SOCKET) and (
+      (ASocket.LastError = WSAETIMEDOUT) or (ASocket.LastError = 0));
   end;
 
   function SendStream(aStream: TStream; aSocket: TTCPBlockSocket): boolean;
   var
-    zBuffLen: Integer;
+    zBuffLen: integer;
   begin
     zBuffLen := aStream.Size;
     aSocket.SendBuffer(@zBuffLen, SizeOf(zBuffLen));
@@ -76,10 +78,9 @@ procedure TServerMainForm.AppOnProcess(ClientSocket: TTCPBlockSocket);
     end;
   end;
 
-  function RecvStream(aStream: TMemoryStream; aSocket: TTCPBlockSocket)
-    : boolean;
+  function RecvStream(aStream: TMemoryStream; aSocket: TTCPBlockSocket): boolean;
   var
-    zBuffLen: Integer;
+    zBuffLen: integer;
   begin
     aSocket.RecvBuffer(@zBuffLen, SizeOf(zBuffLen));
     result := IsOperationGood(aSocket);
@@ -92,12 +93,13 @@ procedure TServerMainForm.AppOnProcess(ClientSocket: TTCPBlockSocket);
   end;
 
 var
-  FDeviceID: Word;
+  FDeviceID: word;
   zMemStream: TStreamHelper;
   zClientResult: PClentInfo;
 begin
   FDeviceID := 0;
   zMemStream := TStreamHelper.Create;
+  ClientSocket.ConnectionTimeout := 1000;
   try
     try
       if not RecvStream(zMemStream, ClientSocket) then
@@ -134,7 +136,7 @@ begin
       zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0,
         csConnectError);
       PostMessage(Application.MainFormHandle, WM_TCPClientNotify,
-        Integer(zClientResult), 0);
+        integer(zClientResult), 0);
     end;
   end;
 end;
@@ -158,13 +160,13 @@ begin
     IdTCPServer.OnExecute := IdTCPServerExecute;
     IdTCPServer.MaxConnections := 10000;
     IdTCPServer.ListenQueue := 400;
-    IdTCPServer.Active := True;
+    IdTCPServer.Active := true;
     btStartIndy.Caption := 'STOP';
-    CheckingTimer.Enabled := True;
+    CheckingTimer.Enabled := true;
   end
   else
   begin
-    CheckingTimer.Enabled := False;
+    CheckingTimer.Enabled := false;
     try
       FreeAndNil(IdTCPServer);
       FreeAndNil(IdSchedulerOfThreadPool);
@@ -183,10 +185,10 @@ begin
 
     IOCPServer.OnUpdate := nil;
     IOCPServer.OnProcess := AppOnProcess;
-    IOCPServer.OnError  := nil;
+    IOCPServer.OnError := nil;
     IOCPServer.Port := StrToIntDef(lePort.Text, 5706);
     IOCPServer.MaxThreadsInPool := 10000;
-    IOCPServer.MinThreadsInPool := 40;
+    IOCPServer.MinThreadsInPool := 300;
     IOCPServer.IdleTimeOut := cClientTimeout; // ожидание нового подключения
     IOCPServer.CommandTimeOut := cClientTimeout;  // таймаут БД
     IOCPServer.ConnectionTimeOut := cClientTimeout;  // таймаут
@@ -194,10 +196,11 @@ begin
     IOCPServer.Start;
 
     btStartIOCP.Caption := 'СТОП IOCP';
-    CheckingTimer.Enabled := True;
-  end else
+    CheckingTimer.Enabled := true;
+  end
+  else
   begin
-    CheckingTimer.Enabled := False;
+    CheckingTimer.Enabled := false;
     IOCPServer.Stop;
     FreeAndNil(IOCPServer);
     btStartIOCP.Caption := 'СТАРТ IOCP';
@@ -210,11 +213,11 @@ begin
   begin
     SynapseServer := TListenerThread.Create(lePort.Text);
     btStartSynapse.Caption := 'STOP';
-    CheckingTimer.Enabled := True;
+    CheckingTimer.Enabled := true;
   end
   else
   begin
-    CheckingTimer.Enabled := False;
+    CheckingTimer.Enabled := false;
     try
       FreeAndNil(SynapseServer);
     finally
@@ -233,13 +236,13 @@ begin
     WinSockServer.LocalHost := '0.0.0.0';
     WinSockServer.LocalPort := lePort.Text;
     WinSockServer.OnAccept := TcpServerWinSockAccept;
-    WinSockServer.Active := True;
+    WinSockServer.Active := true;
     btStartWinSock.Caption := 'STOP';
-    CheckingTimer.Enabled := True;
+    CheckingTimer.Enabled := true;
   end
   else
   begin
-    CheckingTimer.Enabled := False;
+    CheckingTimer.Enabled := false;
     try
       FreeAndNil(WinSockServer);
     finally
@@ -256,9 +259,9 @@ begin
     lbClientsCount.Caption := Format('Зафиксировано коннектов: %d',
       [SynapseServer.ConnectionsCount]);
   end;
-  CheckingTimer.Enabled := False;
+  CheckingTimer.Enabled := false;
   DrawIOTransactStates(ImageDevices.Picture.Bitmap.Canvas);
-  CheckingTimer.Enabled := True;
+  CheckingTimer.Enabled := true;
 end;
 
 procedure TServerMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -306,7 +309,7 @@ end;
 
 procedure TServerMainForm.IdTCPServerExecute(AContext: TIdContext);
 var
-  FDeviceID: Word;
+  FDeviceID: word;
   zMemStream: TStreamHelper;
   zClientResult: PClentInfo;
 begin
@@ -351,7 +354,7 @@ begin
       zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0,
         csConnectError);
       PostMessage(Application.MainFormHandle, WM_TCPClientNotify,
-        Integer(zClientResult), 0);
+        integer(zClientResult), 0);
     end;
   end;
 end;
@@ -370,7 +373,7 @@ procedure TServerMainForm.TcpServerWinSockAccept(Sender: TObject;
 
   function SendStream(aStream: TStream; aSocket: TCustomIpClient): boolean;
   var
-    zBuffLen: Integer;
+    zBuffLen: integer;
   begin
     zBuffLen := aStream.Size;
     result := aSocket.SendBuf(zBuffLen, SizeOf(zBuffLen)) <> SOCKET_ERROR;
@@ -378,23 +381,22 @@ procedure TServerMainForm.TcpServerWinSockAccept(Sender: TObject;
       result := aSocket.SendStream(aStream) <> SOCKET_ERROR;
   end;
 
-  function RecvStream(aStream: TMemoryStream; aSocket: TCustomIpClient)
-    : boolean;
+  function RecvStream(aStream: TMemoryStream; aSocket: TCustomIpClient): boolean;
   var
-    zBuffLen: Integer;
+    zBuffLen: integer;
   begin
-    Result := False;
+    Result := false;
     if aSocket.ReceiveBuf(zBuffLen, SizeOf(zBuffLen)) = SOCKET_ERROR then
       exit;
     aStream.Size := zBuffLen;
     aStream.Position := 0;
     if aSocket.ReceiveBuf(aStream.Memory^, zBuffLen) = SOCKET_ERROR then
       exit;
-    Result := True;
+    Result := true;
   end;
 
 var
-  FDeviceID: Word;
+  FDeviceID: word;
   zMemStream: TStreamHelper;
   zClientResult: PClentInfo;
 begin
@@ -436,7 +438,7 @@ begin
       zClientResult := GetPClentInfo(FDeviceID, cmDefaultMode, 0,
         csConnectError);
       PostMessage(Application.MainFormHandle, WM_TCPClientNotify,
-        Integer(zClientResult), 0);
+        integer(zClientResult), 0);
     end;
   end;
 end;

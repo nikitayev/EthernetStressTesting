@@ -1,26 +1,26 @@
-{*
+{ *
 
-Synapse IOCPPool implementation.
+  Synapse IOCPPool implementation.
 
-The TTCPDaemon class works like a web-server using a pool of TWorkerThreads waiting
-for an IOCP handle. It reads a .config file to configurate the class.
+  The TTCPDaemon class works like a web-server using a pool of TWorkerThreads waiting
+  for an IOCP handle. It reads a .config file to configurate the class.
 
-The free XML parser component (no source code) can be found in
-http://www.icom-dv.de
+  The free XML parser component (no source code) can be found in
+  http://www.icom-dv.de
 
-These class was inspired on the William Kennedy article at Continuum Technology
-"IOCP Thread Pooling in C#" - http://www.theukwebdesigncompany.com/articles/article.php?id=82
+  These class was inspired on the William Kennedy article at Continuum Technology
+  "IOCP Thread Pooling in C#" - http://www.theukwebdesigncompany.com/articles/article.php?id=82
 
-Feel free to use it.
-Any comments or improvements please tell me ! :)
+  Feel free to use it.
+  Any comments or improvements please tell me ! :)
 
-Synapse rocks !
+  Synapse rocks !
 
---
-Andre Azevedo
-midsilence@yahoo.com.br
+  --
+  Andre Azevedo
+  midsilence@yahoo.com.br
 
-*}
+  * }
 
 unit IOCPPool;
 
@@ -32,9 +32,10 @@ uses
 
 type
 
-  TUpdateEvent = procedure(nActThreads, nCurWorks, nCurThreads: integer) of object;
+  TUpdateEvent = procedure(nActThreads, nCurWorks, nCurThreads: integer)
+    of object;
   TProcessEvent = procedure(ASock: TTCPBlockSocket) of object;
-  TErrorEvent  = procedure(AE: Exception) of object;
+  TErrorEvent = procedure(AE: Exception) of object;
 
   TTcpDaemon = class;
 
@@ -42,28 +43,30 @@ type
   private
     FDBConnection: TAdoConnection;
     FConnectionString: string;
-    FTcpDaemon: TTCPDaemon;
+    FTcpDaemon: TTcpDaemon;
     FWorkerSocket: TTCPBlockSocket;
   protected
     procedure Execute; override;
   public
-    constructor Create(ATcpDaemon: TTCPDaemon; AConnectionString: string);
+    constructor Create(ATcpDaemon: TTcpDaemon; AConnectionString: string);
     destructor Destroy; override;
   end;
 
   TAcceptThread = class(TThread)
   private
-    FTcpDaemon: TTCPDaemon;
+    FTcpDaemon: TTcpDaemon;
     FPort: integer;
     FSock: TTCPBlockSocket;
+    FBinded: boolean;
   protected
     procedure Execute; override;
   public
     constructor Create(ATcpDaemon: TTcpDaemon; APort: integer);
     destructor Destroy; override;
+    function GetActive: boolean;
   end;
 
-  TTCPDaemon = class(TObject)
+  TTcpDaemon = class(TObject)
   private
     FAcceptthread: TAcceptThread;
     FPort: integer;
@@ -86,6 +89,8 @@ type
     FConnectionTimeOut: integer;
     FCommandTimeOut: integer;
     FActive: boolean;
+    FTagPtr: Pointer;
+    FTag: integer;
     procedure IncActThreadsInPool;
     procedure DecActThreadsInPool;
     procedure IncCurThreadsInPool;
@@ -100,69 +105,77 @@ type
     destructor Destroy; override;
     property Active: boolean read FActive write FActive;
     property Port: integer read FPort write FPort;
-    property MaxThreadsInPool: integer read FMaxThreadsInPool write FMaxThreadsInPool;
-    property MinThreadsInPool: integer read FMinThreadsInPool write FMinThreadsInPool;
+    property MaxThreadsInPool: integer read FMaxThreadsInPool
+      write FMaxThreadsInPool;
+    property MinThreadsInPool: integer read FMinThreadsInPool
+      write FMinThreadsInPool;
     property IdleTimeOut: integer read FIdleTimeOut write FIdleTimeOut;
-    property ConnectionString: string read FConnectionString write FConnectionString;
-    property ConnectionTimeOut: integer read FConnectionTimeOut write FConnectionTimeOut;
+    property ConnectionString: string read FConnectionString
+      write FConnectionString;
+    property ConnectionTimeOut: integer read FConnectionTimeOut
+      write FConnectionTimeOut;
     property CommandTimeOut: integer read FCommandTimeOut write FCommandTimeOut;
     property OnUpdate: TUpdateEvent read FOnUpdateEvent write FOnUpdateEvent;
-    property OnProcess: TProcessEvent read FOnProcessEvent write FOnProcessEvent;
+    property OnProcess: TProcessEvent read FOnProcessEvent
+      write FOnProcessEvent;
     property OnError: TErrorEvent read FOnErrorEvent write FOnErrorEvent;
     procedure Start;
     procedure Stop;
     procedure WaitForTerminate;
+    property Tag: integer read FTag write FTag;
+    property TagPtr: Pointer read FTagPtr write FTagPtr;
   end;
 
 implementation
 
 { TTCPDaemon }
 const
-  KILL_THREAD = $7fffffff;
+  KILL_THREAD = $7FFFFFFF;
 
-procedure TTCPDaemon.DecActThreadsInPool;
+procedure TTcpDaemon.DecActThreadsInPool;
 begin
   InterlockedDecrement(FActThreadsInPool);
 end;
 
-procedure TTCPDaemon.DecCurWorksInPool;
+procedure TTcpDaemon.DecCurWorksInPool;
 begin
   InterlockedDecrement(FCurWorksInPool);
 end;
 
-procedure TTCPDaemon.DecCurThreadsInPool;
+procedure TTcpDaemon.DecCurThreadsInPool;
 begin
   InterlockedDecrement(FCurThreadsInPool);
 end;
 
-destructor TTCPDaemon.Destroy;
+destructor TTcpDaemon.Destroy;
 begin
 
   FreeAndNil(FWorkerThreads);
   FreeAndNil(FCRTSection);
   FreeAndNil(FTerminateEvent);
   FreeAndNil(FServiceTerminateEvent);
+  FreeAndNil(FAcceptthread);
 
   inherited;
 
 end;
 
-procedure TTCPDaemon.IncActThreadsInPool;
+procedure TTcpDaemon.IncActThreadsInPool;
 begin
   InterlockedIncrement(FActThreadsInPool);
 end;
 
-procedure TTCPDaemon.IncCurWorksInPool;
+procedure TTcpDaemon.IncCurWorksInPool;
 begin
   InterlockedIncrement(FCurWorksInPool);
 end;
 
-procedure TTCPDaemon.IncCurThreadsInPool;
+procedure TTcpDaemon.IncCurThreadsInPool;
 begin
   InterlockedIncrement(FCurThreadsInPool);
 end;
 
-procedure TTCPDaemon.SyncAtualiza;
+procedure TTcpDaemon.SyncAtualiza;
 begin
 
   if Assigned(OnUpdate) then
@@ -170,7 +183,7 @@ begin
 
 end;
 
-procedure TTCPDaemon.Start;
+procedure TTcpDaemon.Start;
 var
   nContador: integer;
   Thread: TWorkerThread;
@@ -179,9 +192,10 @@ begin
 
   try
 
-    //Config;
+    // Config;
     GetSystemInfo(SystemInfo);
-    FIOCPHandle := CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, SystemInfo.dwNumberOfProcessors);
+    FIOCPHandle := CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0,
+      SystemInfo.dwNumberOfProcessors);
 
     if (FIOCPHandle = 0) then
       raise Exception.Create('Erro IOCP Creation');
@@ -194,8 +208,8 @@ begin
     end;
 
     FAcceptthread := TAcceptThread.Create(Self, FPort);
-
-    Active := true;
+    Sleep(100);
+    FActive := FAcceptthread.GetActive;
 
   except
 
@@ -206,16 +220,17 @@ begin
 
 end;
 
-procedure TTCPDaemon.Stop;
+procedure TTcpDaemon.Stop;
 begin
 
   try
 
-    FAcceptThread.FSock.CloseSocket;
+    FAcceptthread.FSock.CloseSocket;
     FAcceptthread.Terminate;
     FAcceptthread.WaitFor;
 
     CloseHandle(FIOCPHandle);
+    FreeAndNil(FAcceptthread);
 
   finally
 
@@ -226,7 +241,7 @@ begin
 
 end;
 
-constructor TTCPDaemon.Create;
+constructor TTcpDaemon.Create;
 begin
 
   try
@@ -237,7 +252,7 @@ begin
     FServiceTerminateEvent := TSimpleEvent.Create;
 
     FConnectionString := '';
-    FConnectionTimeout := 0;
+    FConnectionTimeOut := 0;
     FCommandTimeOut := 0;
     FIdleTimeOut := 0;
     FMinThreadsInPool := 0;
@@ -253,7 +268,7 @@ begin
 
 end;
 
-procedure TTCPDaemon.SyncErros;
+procedure TTcpDaemon.SyncErros;
 begin
 
   if Assigned(FOnErrorEvent) then
@@ -261,36 +276,35 @@ begin
 
 end;
 
-procedure TTCPDaemon.WaitForTerminate;
+procedure TTcpDaemon.WaitForTerminate;
 begin
 
   FServiceTerminateEvent.WaitFor(INFINITE);
 
 end;
 
-procedure TTCPDaemon.Config;
+procedure TTcpDaemon.Config;
 var
   elRoot, elElement: IXMLNode;
-//  elNode: IXMLNode;
+  // elNode: IXMLNode;
   doc: IXMLDocument;
-//  IcXMLParser: TIcXMLParser;
-//  stmXML: TMemoryStream;
+  // IcXMLParser: TIcXMLParser;
+  // stmXML: TMemoryStream;
 begin
 
   doc := TXMLDocument.Create(nil);
 
-//doc.setEncoding('UTF-8');
+  // doc.setEncoding('UTF-8');
 
   doc.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'main.config');
 
-
-//----- Root !
+  // ----- Root !
   elRoot := doc.GetDocumentElement;
 
   if elRoot.NodeName = 'Configuration' then
   begin
 
-  //----- Configuration !
+    // ----- Configuration !
     if elRoot.HasChildNodes then
     begin
 
@@ -299,7 +313,7 @@ begin
       while Assigned(elElement) do
       begin
 
-      //----- DbConnection !
+        // ----- DbConnection !
         if elElement.NodeName = 'DbConnection' then
         begin
 
@@ -307,14 +321,15 @@ begin
             FConnectionString := elElement.Attributes['ConnectionString'];
 
           if elElement.HasAttribute('ConnectionTimeOut') then
-            FConnectionTimeOut := StrToInt(elElement.Attributes['ConnectionTimeOut']);
+            FConnectionTimeOut :=
+              StrToInt(elElement.Attributes['ConnectionTimeOut']);
 
           if elElement.HasAttribute('CommandTimeOut') then
             FCommandTimeOut := StrToInt(elElement.Attributes['CommandTimeOut']);
 
         end;
 
-      //----- SocketConnection !
+        // ----- SocketConnection !
         if elElement.NodeName = 'SocketConnection' then
         begin
 
@@ -328,7 +343,8 @@ begin
             FMaxThreadsInPool := StrToInt(elElement.Attributes['MaxThreads']);
 
           if elElement.HasAttribute('IdleTimeOut') then
-            FIdleTimeOut := StrToInt(elElement.Attributes['IdleTimeOut']) * 1000;
+            FIdleTimeOut :=
+              StrToInt(elElement.Attributes['IdleTimeOut']) * 1000;
 
         end;
 
@@ -350,7 +366,8 @@ begin
   FTcpDaemon := ATcpDaemon;
   FPort := APort;
   FSock := TTCPBlockSocket.Create;
-  //FreeOnTerminate := true;
+  FSock.RaiseExcept := true;
+  // FreeOnTerminate := true;
 
   inherited Create(false);
 end;
@@ -373,9 +390,11 @@ begin
     CreateSocket;
 
     setLinger(true, 60000);
+    // setLinger(true, 5000);
 
     bind('0.0.0.0', IntToStr(FPort));
     listen;
+    FBinded := true;
 
     FTcpDaemon.SyncAtualiza;
 
@@ -384,223 +403,246 @@ begin
       if CanRead(60000) then // 5000 default
       begin
 
-        ClientSocket := Accept;
+        try
+          ClientSocket := Accept;
+        except
+          on E: Exception do;
+        end;
 
-        if ClientSocket <> -1 then
+        if ((not Terminated) and (ClientSocket <> -1)) then
         begin
           FTcpDaemon.IncCurWorksInPool;
-          PostQueuedCompletionStatus(FTcpDaemon.FIOCPHandle, 0, cardinal(ClientSocket), nil);
+          PostQueuedCompletionStatus(FTcpDaemon.FIOCPHandle, 0,
+            cardinal(ClientSocket), nil);
         end;
 
       end
 
-    until Terminated;
+      until Terminated;
 
-    CloseSocket;
+      CloseSocket;
 
-    with FTcpDaemon do
-    begin
-
-      FCRTSection.Enter;
-
-      try
-
-        for nContador := FWorkerThreads.Count - 1 downto 0 do
-          PostQueuedCompletionStatus(FIOCPHandle, 0, cardinal(KILL_THREAD), nil);
-
-      finally
-        FCRTSection.Leave;
-      end;
-
-      WaitForSingleObject(FTerminateEvent.Handle, INFINITE);
-
-    end;
-
-  end;
-
-end;
-
-{ TWorkerThread }
-
-constructor TWorkerThread.Create(ATcpDaemon: TTCPDaemon; AConnectionString: string);
-begin
-
-  FTcpDaemon := ATcpDaemon;
-  FConnectionString := AConnectionString;
-
-  FreeOnTerminate := true;
-  inherited Create(false);
-
-end;
-
-destructor TWorkerThread.Destroy;
-begin
-  inherited;
-end;
-
-procedure TWorkerThread.Execute;
-var
-  Ov: POverlapped;
-  Transfered: dword;
-  ClientSocket: TSocket;
-  Thread: TThread;
-  nContador: integer;
-  zClientSocket: ULONG_PTR;
-begin
-  CoInitialize(nil);
-  with FTcpDaemon do
-  begin
-
-    if Length(FConnectionString) > 0 then
-    begin
-
-      FDBConnection := TAdoConnection.Create(nil);
-
-      FDBConnection.LoginPrompt := false;
-      FDBConnection.ConnectionTimeout := FConnectionTimeOut;
-      FDBConnection.CommandTimeout := FCommandTimeOut;
-      FDBConnection.ConnectionString := FConnectionString;
-
-      FDBConnection.Open;
-      FDBConnection.Execute('set quoted_identifier off');
-
-    end;
-
-    while not Terminated do
-    begin
-
-      //----- Espera pelo evento !
-      zClientSocket := ULONG_PTR(ClientSocket);
-      if not GetQueuedCompletionStatus(FIOCPHandle, Transfered, zClientSocket, Ov, FIdleTimeOut + 500) then
+      with FTcpDaemon do
       begin
-
-        ClientSocket := TSocket(zClientSocket);
-        //----- Verifica se o tempo expirou !
-        if GetLastError = WAIT_TIMEOUT then
-        begin
-          FCRTSection.Enter;
-          try
-            if (FCurThreadsInPool > FMinThreadsInPool) then
-              Terminate;
-          finally
-            FCRTSection.Leave;
-          end;
-        end
-        else
-        begin
-          Terminate;
-          Break;
-        end;
-
-      end
-      else
-      begin
-        ClientSocket := TSocket(zClientSocket);
-
-        //----- Verifica se o servidor esta sendo destruido !
-        if (ClientSocket = KILL_THREAD) then
-        begin
-          Terminate;
-          Break;
-        end;
-
-        //----- Atualiza Threads!
-        IncActThreadsInPool;
-        DecCurWorksInPool;
-        Synchronize(SyncAtualiza);
 
         FCRTSection.Enter;
 
         try
 
-          if (FTcpDaemon.FCurThreadsInPool < FTcpDaemon.FMaxThreadsInPool) then
-          begin
-
-            if (FTcpDaemon.FActThreadsInPool = FTcpDaemon.FCurThreadsInPool) then
-            begin
-              Thread := TWorkerThread.Create(FTcpDaemon, FTcpDaemon.ConnectionString);
-              FWorkerThreads.Add(Thread);
-              IncCurThreadsInPool;
-              Synchronize(SyncAtualiza);
-            end;
-
-          end;
+          for nContador := FWorkerThreads.Count - 1 downto 0 do
+            PostQueuedCompletionStatus(FIOCPHandle, 0,
+              cardinal(KILL_THREAD), nil);
 
         finally
           FCRTSection.Leave;
         end;
 
-        FWorkerSocket := TTCPBlockSocket.Create;
+        WaitForSingleObject(FTerminateEvent.Handle, INFINITE);
 
-        with FWorkerSocket do
+      end;
+
+    end;
+
+  end;
+
+  function TAcceptThread.GetActive: boolean;
+begin
+  result := FBinded;
+end;
+
+{ TWorkerThread }
+
+  constructor TWorkerThread.Create(ATcpDaemon: TTcpDaemon;
+    AConnectionString: string);
+  begin
+
+    FTcpDaemon := ATcpDaemon;
+    FConnectionString := AConnectionString;
+
+    FreeOnTerminate := true;
+    inherited Create(false);
+
+  end;
+
+  destructor TWorkerThread.Destroy;
+  begin
+    inherited;
+  end;
+
+  procedure TWorkerThread.Execute;
+  var
+    Ov: POverlapped;
+    Transfered: dword;
+    ClientSocket: TSocket;
+    Thread: TThread;
+    nContador: integer;
+    zClientSocket: ULONG_PTR;
+  begin
+    ClientSocket := 0;
+    CoInitialize(nil);
+    with FTcpDaemon do
+    begin
+
+      if Length(FConnectionString) > 0 then
+      begin
+
+        FDBConnection := TAdoConnection.Create(nil);
+
+        FDBConnection.LoginPrompt := false;
+        FDBConnection.ConnectionTimeOut := FConnectionTimeOut;
+        FDBConnection.CommandTimeOut := FCommandTimeOut;
+        FDBConnection.ConnectionString := FConnectionString;
+
+        FDBConnection.Open;
+        FDBConnection.Execute('set quoted_identifier off');
+
+      end;
+
+      while not Terminated do
+      begin
+
+        // ----- Espera pelo evento !
+        zClientSocket := ULONG_PTR(ClientSocket);
+        if not GetQueuedCompletionStatus(FIOCPHandle, Transfered, zClientSocket,
+          Ov, FIdleTimeOut + 500) then
         begin
 
-          //----- Processa Mensagens !
+          ClientSocket := TSocket(zClientSocket);
+          // ----- Verifica se o tempo expirou !
+          if GetLastError = WAIT_TIMEOUT then
+          begin
+            FCRTSection.Enter;
+            try
+              if (FCurThreadsInPool > FMinThreadsInPool) then
+                Terminate;
+            finally
+              FCRTSection.Leave;
+            end;
+          end
+          else
+          begin
+            Terminate;
+            Break;
+          end;
+
+        end
+        else
+        begin
+          ClientSocket := TSocket(zClientSocket);
+
+          // ----- Verifica se o servidor esta sendo destruido !
+          if (ClientSocket = KILL_THREAD) then
+          begin
+            Terminate;
+            Break;
+          end;
+
+          // ----- Atualiza Threads!
+          IncActThreadsInPool;
+          DecCurWorksInPool;
+          Synchronize(SyncAtualiza);
+
+          FCRTSection.Enter;
+
           try
 
-            //--- Maldito try/except/finally !
-            try
-              Socket := ClientSocket;
-              GetSins;
-              setLinger(true, 60000); // default 10000
+            if (FTcpDaemon.FCurThreadsInPool < FTcpDaemon.FMaxThreadsInPool)
+            then
+            begin
 
-              if Assigned(FOnProcessEvent) then
-                FOnProcessEvent(FWorkerSocket);
-            except
-              on e: Exception do
+              if (FTcpDaemon.FActThreadsInPool = FTcpDaemon.FCurThreadsInPool)
+              then
               begin
-                FCRTSection.Enter;
-                try
-                  FErrorException := e;
-                finally
-                  FCRTSection.Leave;
-                end;
-                Synchronize(SyncErros);
+                Thread := TWorkerThread.Create(FTcpDaemon,
+                  FTcpDaemon.ConnectionString);
+                FWorkerThreads.Add(Thread);
+                IncCurThreadsInPool;
+                Synchronize(SyncAtualiza);
               end;
+
             end;
 
           finally
-            DecActThreadsInPool;
-            CloseSocket;
+            FCRTSection.Leave;
           end;
 
+          FWorkerSocket := TTCPBlockSocket.Create;
+
+          with FWorkerSocket do
+          begin
+
+            // ----- Processa Mensagens !
+            try
+
+              // --- Maldito try/except/finally !
+              try
+                Socket := ClientSocket;
+                GetSins;
+                setLinger(true, 60000); // default 10000
+
+                if Assigned(FOnProcessEvent) then
+                  FOnProcessEvent(FWorkerSocket);
+              except
+                on E: Exception do
+                begin
+                  FCRTSection.Enter;
+                  try
+                    FErrorException := E;
+                  finally
+                    FCRTSection.Leave;
+                  end;
+                  Synchronize(SyncErros);
+                end;
+              end;
+
+            finally
+              DecActThreadsInPool;
+              CloseSocket;
+            end;
+
+          end;
+
+          FreeAndNil(FWorkerSocket);
+          Synchronize(SyncAtualiza);
+
+        end; // if
+        ClientSocket := TSocket(zClientSocket);
+
+      end; // while
+
+      if Assigned(FDBConnection) then
+      begin
+        FDBConnection.Close;
+        FreeAndNil(FDBConnection);
+      end;
+
+      if Assigned(FCRTSection) then
+      begin
+        FCRTSection.Enter;
+
+        try
+          if Assigned(FWorkerThreads) then
+          begin
+            nContador := FWorkerThreads.IndexOf(Self);
+
+            if nContador >= 0 then
+              FWorkerThreads.Delete(nContador);
+
+            DecCurThreadsInPool;
+            Synchronize(SyncAtualiza);
+          end;
+
+          if (FCurThreadsInPool = 0) and Assigned(FTerminateEvent) then
+            FTerminateEvent.SetEvent;
+        finally
+          FCRTSection.Leave;
         end;
+      end;
 
-        FreeAndNil(FWorkerSocket);
-        Synchronize(SyncAtualiza);
+      CoUninitialize();
 
-      end; //if
-      ClientSocket := TSocket(zClientSocket);
+    end; // with
 
-    end; //while
-
-    if Assigned(FDBConnection) then
-    begin
-      FDBConnection.Close;
-      FreeAndNil(FDBConnection);
-    end;
-
-    FCRTSection.Enter;
-
-    try
-      nContador := FWorkerThreads.IndexOf(Self);
-
-      if nContador >= 0 then
-        FWorkerThreads.Delete(nContador);
-
-      DecCurThreadsInPool;
-      Synchronize(SyncAtualiza);
-
-      if FCurThreadsInPool = 0 then
-        FTerminateEvent.SetEvent;
-    finally
-      FCRTSection.Leave;
-    end;
-
-    CoUninitialize();
-
-  end; //with
-
-end;
+  end;
 
 end.
